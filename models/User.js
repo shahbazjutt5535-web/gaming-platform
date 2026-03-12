@@ -1,14 +1,27 @@
+// models/User.js
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
 const UserSchema = new mongoose.Schema({
-  username: String,
-  email: String,
-  password: String,
-  playerId: String,
-  balance: {
-    type: Number,
-    default: 0
-  }
+    username: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    balance: { type: Number, default: 0 },  // in USD or your unit
+    playerCode: { type: String, required: true, unique: true }, 
+    createdAt: { type: Date, default: Date.now }
 });
+
+// Hash password before saving
+UserSchema.pre("save", async function(next) {
+    if (!this.isModified("password")) return next();
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+});
+
+// Compare password
+UserSchema.methods.comparePassword = async function(password) {
+    return await bcrypt.compare(password, this.password);
+}
 
 module.exports = mongoose.model("User", UserSchema);
