@@ -1,49 +1,78 @@
 // server.js
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path");
 
+// Routes
 const authRoutes = require("./routes/auth");
 const walletRoutes = require("./routes/wallet");
 const gameRoutes = require("./routes/game");
 const withdrawRoutes = require("./routes/withdraw");
+const adminRoutes = require("./routes/admin");
+const tournamentRoutes = require("./routes/tournament");
+const leaderboardRoutes = require("./routes/leaderboard");
 
 const app = express();
 
-// CORS - allow all origins for Blogger frontend
+/* =========================
+CORS CONFIG
+Allow Blogger frontend
+========================= */
+
 app.use(cors({
   origin: "*",
   methods: ["GET","POST","PUT","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type"]
+  allowedHeaders: ["Content-Type","Authorization"]
 }));
 
 app.use(express.json());
 
-// ------------------------
-// MongoDB connection
-// ------------------------
+/* =========================
+STATIC FILES
+Games + Admin panel
+========================= */
+
+app.use("/games", express.static(path.join(__dirname, "public/games")));
+app.use("/admin", express.static(path.join(__dirname, "admin")));
+
+/* =========================
+MongoDB connection
+========================= */
+
 const mongoURI = "mongodb+srv://shahbazjutt5535_db_user:1cSp0RSmgSyxoBOE@cluster01.rkezxw2.mongodb.net/gamingDB";
 
-// Connect to MongoDB
 mongoose.connect(mongoURI)
-    .then(() => console.log("✅ MongoDB Connected"))
-    .catch(err => console.error("❌ MongoDB Connection Error:", err));
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
-// ------------------------
-// Routes
-// ------------------------
+/* =========================
+API ROUTES
+========================= */
+
 app.use("/api/auth", authRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/game", gameRoutes);
 app.use("/api/withdraw", withdrawRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/tournament", tournamentRoutes);
+app.use("/api/leaderboard", leaderboardRoutes);
 
-// Root
+/* =========================
+ROOT
+========================= */
+
 app.get("/", (req, res) => {
   res.send("🎮 Gaming Platform Backend is running");
 });
 
-// ------------------------
-// Start server
-// ------------------------
+/* =========================
+SERVER START
+========================= */
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
