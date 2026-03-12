@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 // === MongoDB connection ===
-const mongoURI = "mongodb+srv://shahbazjutt5535_db_user:<1cSp0RSmgSyxoBOE>@cluster01.rkezxw2.mongodb.net/gamingDB";
+const mongoURI = "mongodb+srv://shahbazjutt5535_db_user:<1cSp0RSmgSyxoBOE@cluster01.rkezxw2.mongodb.net/gamingDB";
 
 // Connect to MongoDB
 mongoose.connect(mongoURI, {
