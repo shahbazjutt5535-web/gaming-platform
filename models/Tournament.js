@@ -1,11 +1,19 @@
 const mongoose = require("mongoose");
 
 const TournamentSchema = new mongoose.Schema({
+
   name: String,
-  game: String,
+
   prizePool: Number,
-  players: [String], // playerCodes
-  winners: [String]
+
+  game: String,
+
+  players: [String],
+
+  startTime: Date,
+
+  endTime: Date
+
 });
 
 module.exports = mongoose.model("Tournament", TournamentSchema);
