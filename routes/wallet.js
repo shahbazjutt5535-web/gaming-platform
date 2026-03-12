@@ -1,47 +1,49 @@
-// routes/wallet.js
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
-const Transaction = require("../models/Transaction");
+const { checkDeposit } = require("../utils/crypto");
 
-// Add balance (deposit)
-router.post("/deposit", async (req, res) => {
-    try {
-        const { playerCode, amount } = req.body;
-        const user = await User.findOne({ playerCode });
-        if (!user) return res.status(400).json({ message: "User not found" });
+/*
+Manual Deposit Check
+*/
 
-        user.balance += amount;
-        await user.save();
+router.post("/check-deposit", async (req, res) => {
 
-        const txn = new Transaction({ user: user._id, type: "deposit", amount });
-        await txn.save();
+  const { playerCode, walletAddress } = req.body;
 
-        res.json({ message: "Balance added", balance: user.balance });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+  try {
+
+    const user = await User.findOne({ playerCode });
+
+    if (!user) {
+      return res.json({ message: "User not found" });
     }
-});
 
-// Deduct balance
-router.post("/deduct", async (req, res) => {
-    try {
-        const { playerCode, amount } = req.body;
-        const user = await User.findOne({ playerCode });
-        if (!user) return res.status(400).json({ message: "User not found" });
+    const deposit = await checkDeposit(walletAddress);
 
-        if (user.balance < amount) return res.status(400).json({ message: "Insufficient balance" });
-
-        user.balance -= amount;
-        await user.save();
-
-        const txn = new Transaction({ user: user._id, type: "withdraw", amount });
-        await txn.save();
-
-        res.json({ message: "Balance deducted", balance: user.balance });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    if (!deposit) {
+      return res.json({ message: "No new deposit found" });
     }
+
+    user.balance += deposit.amount;
+
+    await user.save();
+
+    res.json({
+      message: "Deposit detected",
+      amount: deposit.amount,
+      balance: user.balance
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+
+  }
+
 });
 
 module.exports = router;
