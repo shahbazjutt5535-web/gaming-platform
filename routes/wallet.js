@@ -1,27 +1,47 @@
+// routes/wallet.js
 const express = require("express");
-const User = require("../models/User");
-
 const router = express.Router();
+const User = require("../models/User");
+const Transaction = require("../models/Transaction");
 
-router.post("/add-balance", async (req, res) => {
+// Add balance (deposit)
+router.post("/deposit", async (req, res) => {
+    try {
+        const { playerCode, amount } = req.body;
+        const user = await User.findOne({ playerCode });
+        if (!user) return res.status(400).json({ message: "User not found" });
 
-  const { playerId, amount } = req.body;
+        user.balance += amount;
+        await user.save();
 
-  const user = await User.findOne({ playerId });
+        const txn = new Transaction({ user: user._id, type: "deposit", amount });
+        await txn.save();
 
-  if (!user) {
-    return res.status(404).json({ error: "User not found" });
-  }
+        res.json({ message: "Balance added", balance: user.balance });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
-  user.balance += amount;
+// Deduct balance
+router.post("/deduct", async (req, res) => {
+    try {
+        const { playerCode, amount } = req.body;
+        const user = await User.findOne({ playerCode });
+        if (!user) return res.status(400).json({ message: "User not found" });
 
-  await user.save();
+        if (user.balance < amount) return res.status(400).json({ message: "Insufficient balance" });
 
-  res.json({
-    message: "Balance added",
-    balance: user.balance
-  });
+        user.balance -= amount;
+        await user.save();
 
+        const txn = new Transaction({ user: user._id, type: "withdraw", amount });
+        await txn.save();
+
+        res.json({ message: "Balance deducted", balance: user.balance });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 module.exports = router;
