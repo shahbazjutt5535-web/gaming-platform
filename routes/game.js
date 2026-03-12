@@ -1,39 +1,121 @@
-// routes/game.js
 const express = require("express");
 const router = express.Router();
+
 const User = require("../models/User");
-const Transaction = require("../models/Transaction");
+const GameLog = require("../models/GameLog");
 
-// Submit game result
+/*
+POST GAME RESULT
+Handles betting and payouts
+*/
+
 router.post("/result", async (req, res) => {
-    try {
-        const { playerCode, game, betAmount, result } = req.body; // result = "win" or "lose"
-        const user = await User.findOne({ playerCode });
-        if (!user) return res.status(400).json({ message: "User not found" });
 
-        if (user.balance < betAmount) return res.status(400).json({ message: "Insufficient balance" });
+  try {
 
-        // Deduct bet first
-        user.balance -= betAmount;
+    const { playerCode, game, betAmount, result } = req.body;
 
-        let txnType = "bet";
+    /* ============================
+    VALIDATION
+    ============================ */
 
-        if (result === "win") {
-            const reward = betAmount * 2; // example: win = 2x bet
-            user.balance += reward;
-            txnType = "win";
-        }
-
-        await user.save();
-
-        // Log transaction
-        const txn = new Transaction({ user: user._id, type: txnType, amount: betAmount, game });
-        await txn.save();
-
-        res.json({ message: "Game result processed", balance: user.balance });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    if (!playerCode || !betAmount || !result) {
+      return res.json({
+        message: "Missing required data"
+      });
     }
+
+    if (betAmount <= 0) {
+      return res.json({
+        message: "Invalid bet amount"
+      });
+    }
+
+    const user = await User.findOne({ playerCode });
+
+    if (!user) {
+      return res.json({
+        message: "User not found"
+      });
+    }
+
+    /* ============================
+    CHECK BALANCE
+    ============================ */
+
+    if (user.balance < betAmount) {
+
+      return res.json({
+        message: "Insufficient balance",
+        balance: user.balance
+      });
+
+    }
+
+    /* ============================
+    DEDUCT BET
+    ============================ */
+
+    user.balance -= betAmount;
+
+    let winAmount = 0;
+
+    /* ============================
+    WIN CALCULATION
+    ============================ */
+
+    if (result === "win") {
+
+      winAmount = betAmount * 2;
+
+      user.balance += winAmount;
+
+    }
+
+    await user.save();
+
+    /* ============================
+    SAVE GAME LOG
+    ============================ */
+
+    const log = new GameLog({
+
+      playerCode: playerCode,
+      game: game || "Unknown",
+      betAmount: betAmount,
+      result: result,
+      winAmount: winAmount,
+      balanceAfter: user.balance
+
+    });
+
+    await log.save();
+
+    /* ============================
+    RESPONSE
+    ============================ */
+
+    res.json({
+
+      message: "Game processed",
+      result: result,
+      betAmount: betAmount,
+      winAmount: winAmount,
+      balance: user.balance
+
+    });
+
+  } catch (error) {
+
+    console.error("Game Error:", error);
+
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+
+  }
+
 });
 
 module.exports = router;
