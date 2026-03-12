@@ -1,12 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
+const bcrypt = require("bcrypt");
 
+const User = require("../models/User");
 const { generateToken } = require("../utils/jwt");
 
-/* ===============================
-REGISTER USER
-=============================== */
+/* =========================
+REGISTER
+========================= */
 
 router.post("/register", async (req, res) => {
 
@@ -15,22 +16,16 @@ router.post("/register", async (req, res) => {
     const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
-
-      return res.json({
-        message: "All fields required"
-      });
-
+      return res.json({ message: "All fields required" });
     }
 
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-
-      return res.json({
-        message: "User already exists"
-      });
-
+      return res.json({ message: "User already exists" });
     }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const playerCode = "P" + Math.floor(100000 + Math.random() * 900000);
 
@@ -38,7 +33,7 @@ router.post("/register", async (req, res) => {
 
       username,
       email,
-      password,
+      password: hashedPassword,
       playerCode,
       balance: 0
 
@@ -47,17 +42,15 @@ router.post("/register", async (req, res) => {
     await newUser.save();
 
     res.json({
-
       message: "Registration successful",
-      playerCode: playerCode
-
+      playerCode
     });
 
-  } catch (error) {
+  } catch (err) {
 
     res.status(500).json({
       message: "Server error",
-      error: error.message
+      error: err.message
     });
 
   }
@@ -65,9 +58,9 @@ router.post("/register", async (req, res) => {
 });
 
 
-/* ===============================
-LOGIN USER
-=============================== */
+/* =========================
+LOGIN
+========================= */
 
 router.post("/login", async (req, res) => {
 
@@ -78,19 +71,13 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-
-      return res.json({
-        message: "User not found"
-      });
-
+      return res.json({ message: "User not found" });
     }
 
-    if (user.password !== password) {
+    const passwordMatch = await bcrypt.compare(password, user.password);
 
-      return res.json({
-        message: "Incorrect password"
-      });
-
+    if (!passwordMatch) {
+      return res.json({ message: "Invalid password" });
     }
 
     const token = generateToken(user);
@@ -98,17 +85,17 @@ router.post("/login", async (req, res) => {
     res.json({
 
       message: "Login successful",
-      token: token,
+      token,
       playerCode: user.playerCode,
       balance: user.balance
 
     });
 
-  } catch (error) {
+  } catch (err) {
 
     res.status(500).json({
       message: "Server error",
-      error: error.message
+      error: err.message
     });
 
   }
