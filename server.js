@@ -56,7 +56,7 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api/game", gameRoutes);
 app.use("/api/withdraw", withdrawRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/tournament", tournamentRoutes);
+app.use("/api/tournament", tournamentRoutes); 
 app.use("/api/leaderboard", leaderboardRoutes);
 
 /* =========================
