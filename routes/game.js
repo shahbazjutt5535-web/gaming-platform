@@ -4,65 +4,40 @@ const router = express.Router();
 const User = require("../models/User");
 const GameLog = require("../models/GameLog");
 
-/*
-POST GAME RESULT
-Handles betting and payouts
-*/
+function generateResult() {
 
-router.post("/result", async (req, res) => {
+  const random = Math.random();
+
+  if (random < 0.48) {
+    return "win";
+  }
+
+  return "lose";
+}
+
+router.post("/play", async (req, res) => {
 
   try {
 
-    const { playerCode, game, betAmount, result } = req.body;
-
-    /* ============================
-    VALIDATION
-    ============================ */
-
-    if (!playerCode || !betAmount || !result) {
-      return res.json({
-        message: "Missing required data"
-      });
-    }
-
-    if (betAmount <= 0) {
-      return res.json({
-        message: "Invalid bet amount"
-      });
-    }
+    const { playerCode, betAmount, game } = req.body;
 
     const user = await User.findOne({ playerCode });
 
     if (!user) {
-      return res.json({
-        message: "User not found"
-      });
+      return res.json({ message: "User not found" });
     }
-
-    /* ============================
-    CHECK BALANCE
-    ============================ */
 
     if (user.balance < betAmount) {
-
       return res.json({
-        message: "Insufficient balance",
-        balance: user.balance
+        message: "Insufficient balance"
       });
-
     }
-
-    /* ============================
-    DEDUCT BET
-    ============================ */
 
     user.balance -= betAmount;
 
-    let winAmount = 0;
+    const result = generateResult();
 
-    /* ============================
-    WIN CALCULATION
-    ============================ */
+    let winAmount = 0;
 
     if (result === "win") {
 
@@ -74,44 +49,32 @@ router.post("/result", async (req, res) => {
 
     await user.save();
 
-    /* ============================
-    SAVE GAME LOG
-    ============================ */
-
     const log = new GameLog({
 
-      playerCode: playerCode,
-      game: game || "Unknown",
-      betAmount: betAmount,
-      result: result,
-      winAmount: winAmount,
+      playerCode,
+      game,
+      betAmount,
+      result,
+      winAmount,
       balanceAfter: user.balance
 
     });
 
     await log.save();
 
-    /* ============================
-    RESPONSE
-    ============================ */
-
     res.json({
 
-      message: "Game processed",
-      result: result,
-      betAmount: betAmount,
-      winAmount: winAmount,
+      result,
+      winAmount,
       balance: user.balance
 
     });
 
-  } catch (error) {
-
-    console.error("Game Error:", error);
+  } catch (err) {
 
     res.status(500).json({
       message: "Server error",
-      error: error.message
+      error: err.message
     });
 
   }
