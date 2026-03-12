@@ -1,3 +1,4 @@
+// server.js
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -7,14 +8,27 @@ const walletRoutes = require("./routes/wallet");
 
 const app = express();
 
+// Middlewares
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect("YOUR_MONGODB_CONNECTION");
+// === MongoDB connection ===
+const mongoURI = "mongodb+srv://shahbazjutt5535_db_user:<1cSp0RSmgSyxoBOE>@cluster01.rkezxw2.mongodb.net/gamingDB";
 
+// Connect to MongoDB
+mongoose.connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(() => console.log("✅ MongoDB Connected"))
+.catch(err => console.error("❌ MongoDB Connection Error:", err));
+
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/wallet", walletRoutes);
 
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
+// Start server
+const PORT = 3000; // or any port you like
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
 });
