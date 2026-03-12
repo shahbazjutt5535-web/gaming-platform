@@ -16,8 +16,7 @@ router.post("/create", async (req, res) => {
 
 // Example: list tournaments
 router.get("/list", async (req, res) => {
-  // Fetch tournaments from DB
   res.json({ tournaments: [] });
 });
 
-module.exports = router;
+module.exports = router;  // ✅ Must export the router
