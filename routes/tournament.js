@@ -4,19 +4,14 @@ const router = express.Router();
 
 // Example: create tournament
 router.post("/create", async (req, res) => {
-  try {
-    const { name, prize } = req.body;
-    // Save tournament in DB here (example)
-    res.json({ message: `Tournament ${name} with prize ${prize} created!` });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
+    // your tournament creation logic here
+    res.json({ message: "Tournament created successfully!" });
 });
 
 // Example: list tournaments
 router.get("/list", async (req, res) => {
-  res.json({ tournaments: [] });
+    // fetch tournaments from DB (placeholder)
+    res.json([{ id: 1, name: "Weekly Tournament" }]);
 });
 
-module.exports = router;  // ✅ Must export the router
+module.exports = router; // ✅ export router correctly
