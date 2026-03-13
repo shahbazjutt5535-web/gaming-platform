@@ -8,8 +8,8 @@ const Deposit = require("../models/Deposit");
 const Withdraw = require("../models/Withdraw");
 const AdminSettings = require("../models/AdminSettings"); // For win probability
 
-const ADMIN_EMAIL = "admin@example.com";   // <-- replace with your admin email
-const ADMIN_PASSWORD = "password123";      // <-- replace with your admin password
+const ADMIN_EMAIL = "admin";   // <-- replace with your admin email
+const ADMIN_PASSWORD = "admin";      // <-- replace with your admin password
 const JWT_SECRET = "YOUR_SECRET_KEY";      // <-- secret key for JWT
 
 /* =======================
