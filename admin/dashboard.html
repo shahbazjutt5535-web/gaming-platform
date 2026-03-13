@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel</title>
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:#111;
+color:white;
+}
+.sidebar{
+width:250px;
+height:100vh;
+background:#000;
+position:fixed;
+padding-top:20px;
+}
+.sidebar h2{
+text-align:center;
+color:gold;
+}
+.sidebar button{
+width:100%;
+padding:12px;
+background:none;
+border:none;
+color:white;
+text-align:left;
+cursor:pointer;
+}
+.sidebar button:hover{
+background:#222;
+}
+.main{
+margin-left:250px;
+padding:20px;
+}
+.panel{
+background:#1c1c1c;
+padding:20px;
+margin-bottom:20px;
+border-radius:6px;
+}
+input{
+padding:10px;
+width:100%;
+margin:5px 0;
+}
+button{
+padding:10px 15px;
+background:gold;
+border:none;
+cursor:pointer;
+}
+table{
+width:100%;
+border-collapse:collapse;
+}
+th,td{
+border:1px solid #333;
+padding:8px;
+text-align:center;
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+<h2>ADMIN PANEL</h2>
+<button onclick="showPanel('users')">User Manager</button>
+<button onclick="showPanel('balance')">Balance Editor</button>
+<button onclick="showPanel('deposits')">Deposit Monitor</button>
+<button onclick="showPanel('withdraws')">Withdraw Approval</button>
+<button onclick="showPanel('profit')">Win Probability</button>
+<button onclick="showPanel('tournaments')">Tournaments</button>
+<button onclick="showPanel('leaderboard')">Leaderboard</button>
+<button onclick="showPanel('stats')">Live Game Stats</button>
+<button onclick="logoutAdmin()">Logout</button>
+</div>
+
+<div class="main">
+
+<!-- USER MANAGER -->
+<div id="users" class="panel">
+<h3>User Manager</h3>
+<button onclick="loadUsers()">Load Users</button>
+<table>
+<thead>
+<tr>
+<th>ID</th><th>Username</th><th>Email</th><th>Balance</th>
+</tr>
+</thead>
+<tbody id="userTable"></tbody>
+</table>
+</div>
+
+<!-- BALANCE EDITOR -->
+<div id="balance" class="panel" style="display:none">
+<h3>Balance Editor</h3>
+<input id="editUser" placeholder="Username">
+<input id="editBalance" placeholder="New Balance">
+<button onclick="updateBalance()">Update Balance</button>
+</div>
+
+<!-- DEPOSITS -->
+<div id="deposits" class="panel" style="display:none">
+<h3>Deposit Monitor</h3>
+<button onclick="loadDeposits()">Refresh</button>
+<table>
+<thead><tr><th>User</th><th>Amount</th><th>TX Hash</th><th>Status</th></tr></thead>
+<tbody id="depositTable"></tbody>
+</table>
+</div>
+
+<!-- WITHDRAW -->
+<div id="withdraws" class="panel" style="display:none">
+<h3>Withdraw Approval</h3>
+<button onclick="loadWithdraws()">Refresh</button>
+<table>
+<thead><tr><th>User</th><th>Amount</th><th>Wallet</th><th>Approve</th></tr></thead>
+<tbody id="withdrawTable"></tbody>
+</table>
+</div>
+
+<!-- WIN CONTROL -->
+<div id="profit" class="panel" style="display:none">
+<h3>Platform Profit Control</h3>
+<input id="winRate" placeholder="Win Probability (0.0 - 1.0)">
+<button onclick="updateWinRate()">Update</button>
+</div>
+
+<!-- TOURNAMENT -->
+<div id="tournaments" class="panel" style="display:none">
+<h3>Create Tournament</h3>
+<input id="tourName" placeholder="Tournament Name">
+<button onclick="createTournament()">Create</button>
+</div>
+
+<!-- LEADERBOARD -->
+<div id="leaderboard" class="panel" style="display:none">
+<h3>Leaderboard</h3>
+<button onclick="loadLeaderboard()">Refresh</button>
+<table>
+<thead><tr><th>Rank</th><th>User</th><th>Balance</th></tr></thead>
+<tbody id="leaderboardTable"></tbody>
+</table>
+</div>
+
+<!-- LIVE STATS -->
+<div id="stats" class="panel" style="display:none">
+<h3>Live Game Stats</h3>
+<p>Total Users: <span id="statUsers">0</span></p>
+<p>Total Bets: <span id="statBets">0</span></p>
+<p>Total Wins: <span id="statWins">0</span></p>
+<button onclick="loadStats()">Refresh</button>
+</div>
+
+</div>
+
+<script>
+const API="https://gaming-platform-8m93.onrender.com";
+const token=localStorage.adminToken;
+if(!token){window.location.href="admin-login.html";}
+
+// Panel switch
+function showPanel(id){
+document.querySelectorAll(".panel").forEach(p=>p.style.display="none");
+document.getElementById(id).style.display="block";
+}
+
+// Logout
+function logoutAdmin(){localStorage.removeItem("adminToken"); window.location.href="admin-login.html";}
+
+/* =========================
+API CALLS (pass Authorization)
+========================= */
+
+// Users
+async function loadUsers(){
+const res=await fetch(API+"/api/admin/users",{headers:{"Authorization":"Bearer "+token}});
+const data=await res.json();
+userTable.innerHTML="";
+data.forEach(u=>userTable.innerHTML+=`<tr><td>${u.playerCode}</td><td>${u.username}</td><td>${u.email}</td><td>${u.balance}</td></tr>`);
+}
+
+// Balance
+async function updateBalance(){
+await fetch(API+"/api/admin/update-balance",{
+method:"POST",
+headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
+body:JSON.stringify({username:editUser.value,balance:editBalance.value})
+});
+alert("Balance updated");
+}
+
+// Deposits
+async function loadDeposits(){
+const res=await fetch(API+"/api/admin/deposits",{headers:{"Authorization":"Bearer "+token}});
+const data=await res.json();
+depositTable.innerHTML="";
+data.forEach(d=>depositTable.innerHTML+=`<tr><td>${d.user}</td><td>${d.amount}</td><td>${d.txHash}</td><td>${d.status}</td></tr>`);
+}
+
+// Withdraws
+async function loadWithdraws(){
+const res=await fetch(API+"/api/admin/withdraws",{headers:{"Authorization":"Bearer "+token}});
+const data=await res.json();
+withdrawTable.innerHTML="";
+data.forEach(w=>withdrawTable.innerHTML+=`<tr><td>${w.user}</td><td>${w.amount}</td><td>${w.wallet}</td><td><button onclick="approveWithdraw('${w._id}')">Approve</button></td></tr>`);
+}
+async function approveWithdraw(id){await fetch(API+"/api/admin/approve-withdraw/"+id,{headers:{"Authorization":"Bearer "+token}}); alert("Withdraw approved");}
+
+// Win Rate
+async function updateWinRate(){
+await fetch(API+"/api/admin/winrate",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({rate:winRate.value})});
+alert("Win rate updated");
+}
+
+// Tournament
+async function createTournament(){
+await fetch(API+"/api/tournament/create",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({name:tourName.value})});
+alert("Tournament created");
+}
+
+// Leaderboard
+async function loadLeaderboard(){
+const res=await fetch(API+"/api/leaderboard",{headers:{"Authorization":"Bearer "+token}});
+const data=await res.json();
+leaderboardTable.innerHTML="";
+data.forEach((u,i)=>leaderboardTable.innerHTML+=`<tr><td>${i+1}</td><td>${u.username}</td><td>${u.balance}</td></tr>`);
+}
+
+// Live Stats
+async function loadStats(){
+const res=await fetch(API+"/api/admin/stats",{headers:{"Authorization":"Bearer "+token}});
+const data=await res.json();
+statUsers.innerText=data.users;
+statBets.innerText=data.totalBets;
+statWins.innerText=data.totalWins;
+}
+</script>
+
+</body>
+</html>
