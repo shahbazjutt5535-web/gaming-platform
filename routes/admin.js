@@ -10,7 +10,7 @@ const AdminSettings = require("../models/AdminSettings"); // For win probability
 
 const ADMIN_EMAIL = "admin";   // <-- replace with your admin email
 const ADMIN_PASSWORD = "admin";      // <-- replace with your admin password
-const JWT_SECRET = "YOUR_SECRET_KEY";      // <-- secret key for JWT
+const JWT_SECRET = "admin123";      // <-- secret key for JWT
 
 /* =======================
 ADMIN LOGIN
