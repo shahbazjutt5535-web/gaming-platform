@@ -22,7 +22,7 @@ Allow Blogger frontend
 ========================= */
 
 app.use(cors({
-  origin: "*",
+  origin: "*", // allow all domains; optionally restrict to your blog URL for security
   methods: ["GET","POST","PUT","DELETE","OPTIONS"],
   allowedHeaders: ["Content-Type","Authorization"]
 }));
@@ -31,11 +31,18 @@ app.use(express.json());
 
 /* =========================
 STATIC FILES
-Games + Admin panel
+Games + Admin panel + new frontend files
 ========================= */
 
+// Existing game files
 app.use("/games", express.static(path.join(__dirname, "public/games")));
+
+// Existing admin panel
 app.use("/admin", express.static(path.join(__dirname, "admin")));
+
+// Optional: New blogger frontend files if needed
+// Place any new HTML/JS/CSS for Blogger here
+app.use("/blogger", express.static(path.join(__dirname, "public/blogger")));
 
 /* =========================
 MongoDB connection
@@ -65,6 +72,15 @@ ROOT
 
 app.get("/", (req, res) => {
   res.send("🎮 Gaming Platform Backend is running");
+});
+
+/* =========================
+ERROR HANDLER
+Optional: Return JSON if route not found
+========================= */
+
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
 });
 
 /* =========================
