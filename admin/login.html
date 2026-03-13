@@ -1,88 +1,349 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin Login</title>
+<title>Admin Panel - Luxury Casino</title>
 <style>
 body{
-  margin:0;
-  font-family:Arial;
-  background:#111;
-  color:white;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
+    font-family: Arial, sans-serif;
+    margin:0; padding:0;
+    background:#111;
+    color:white;
 }
-.login-panel{
-  background:#1c1c1c;
-  padding:40px;
-  border-radius:10px;
-  width:400px;
-  text-align:center;
-  box-shadow:0 0 20px gold;
-  animation: lightMove 3s infinite alternate;
+header{
+    background:#ffcc00;
+    color:black;
+    padding:20px;
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+    box-shadow:0 5px 10px rgba(0,0,0,0.5);
 }
-h2{color:gold;}
-input{
-  width:100%;
-  padding:12px;
-  margin:10px 0;
-  border-radius:5px;
-  border:none;
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:20px;
 }
-input:focus{outline:none;}
+.panel{
+    background:#222;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+}
+.panel h3{
+    margin-top:0;
+}
+input, select{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    border-radius:6px;
+    border:none;
+    font-size:16px;
+}
+input.success{ color:blue; background:#e6f0ff; }
+input.error{ color:red; background:#ffe6e6; }
 button{
-  width:100%;
-  padding:12px;
-  background:gold;
-  border:none;
-  border-radius:5px;
-  cursor:pointer;
+    padding:10px 20px;
+    border:none;
+    border-radius:6px;
+    background:#ffcc00;
+    font-weight:bold;
+    color:black;
+    cursor:pointer;
+    transition:0.3s;
 }
-button:hover{background:#e6c200;}
-.error{color:red;margin:10px 0;}
-@keyframes lightMove{
-  0%{box-shadow:0 0 20px gold;}
-  50%{box-shadow:0 0 50px gold;}
-  100%{box-shadow:0 0 20px gold;}
+button:hover{ background:#e6b800; }
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
 }
+th,td{
+    border:1px solid #999;
+    padding:8px;
+    text-align:center;
+    color:black;
+    background:white;
+}
+#dashboard{ display:none; }
+#errorMsg{ color:red; }
 </style>
 </head>
 <body>
 
-<div class="login-panel">
-<h2>Admin Login</h2>
-<input id="adminEmail" type="email" placeholder="Email">
-<input id="adminPass" type="password" placeholder="Password">
-<div class="error" id="errorMsg"></div>
+<header>🎰 Admin Panel - Luxury Casino</header>
+
+<div class="container">
+
+<!-- ADMIN LOGIN -->
+<div class="panel" id="loginPanel">
+<h3>Admin Login</h3>
+<input type="email" id="adminEmail" placeholder="Email">
+<input type="password" id="adminPass" placeholder="Password">
 <button onclick="loginAdmin()">Login</button>
+<p id="errorMsg"></p>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+
+<div class="panel">
+<h3>Platform Stats</h3>
+<p>Total Users: <span id="totalUsers">0</span></p>
+<p>Total Bets: <span id="totalBets">0</span></p>
+<p>Total Wins: <span id="totalWins">0</span></p>
+<p>Win Probability: <input type="number" id="winProb" min="0" max="1" step="0.01">
+<button onclick="updateWinProb()">Update</button></p>
+</div>
+
+<div class="panel">
+<h3>User Management</h3>
+<button onclick="loadUsers()">Refresh Users</button>
+<table>
+<thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Balance</th><th>Actions</th></tr></thead>
+<tbody id="usersTable"></tbody>
+</table>
+</div>
+
+<div class="panel">
+<h3>Deposit Monitor</h3>
+<button onclick="loadDeposits()">Refresh Deposits</button>
+<table>
+<thead><tr><th>ID</th><th>Player</th><th>Amount</th><th>TX Hash</th><th>Status</th></tr></thead>
+<tbody id="depositTable"></tbody>
+</table>
+</div>
+
+<div class="panel">
+<h3>Withdraw Approvals</h3>
+<button onclick="loadWithdraws()">Refresh Withdraws</button>
+<table>
+<thead><tr><th>ID</th><th>Player</th><th>Amount</th><th>Wallet</th><th>Blockchain</th><th>Approve</th></tr></thead>
+<tbody id="withdrawTable"></tbody>
+</table>
+</div>
+
+<div class="panel">
+<h3>Tournaments</h3>
+<button onclick="loadTournaments()">Refresh Tournaments</button>
+<table>
+<thead><tr><th>ID</th><th>Name</th><th>Status</th><th>Action</th></tr></thead>
+<tbody id="tournamentTable"></tbody>
+</table>
+</div>
+
+<div class="panel">
+<h3>Leaderboard</h3>
+<button onclick="loadLeaderboard()">Refresh Leaderboard</button>
+<table>
+<thead><tr><th>Rank</th><th>User</th><th>Balance</th></tr></thead>
+<tbody id="leaderboardTable"></tbody>
+</table>
+</div>
+
+<div class="panel">
+<h3>Live Game Stats</h3>
+<button onclick="loadLiveStats()">Refresh Live Stats</button>
+<table>
+<thead><tr><th>Game</th><th>Players</th><th>Total Bets</th><th>Total Wins</th></tr></thead>
+<tbody id="liveStatsTable"></tbody>
+</table>
+</div>
+
+</div>
+
 </div>
 
 <script>
-const API="https://gaming-platform-8m93.onrender.com";
+const API = "https://gaming-platform-8m93.onrender.com"; // Replace with your backend URL
 
 async function loginAdmin(){
-  const email=document.getElementById("adminEmail").value;
-  const password=document.getElementById("adminPass").value;
-  const errorMsg=document.getElementById("errorMsg");
+    const email = document.getElementById("adminEmail").value;
+    const pass = document.getElementById("adminPass").value;
+    const res = await fetch(API+"/admin/login",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({email, password:pass})
+    });
+    const data = await res.json();
+    if(data.token){
+        localStorage.adminToken = data.token;
+        document.getElementById("loginPanel").style.display="none";
+        document.getElementById("dashboard").style.display="block";
+        loadStats();
+    } else {
+        document.getElementById("errorMsg").innerText = data.message || "Invalid credentials";
+    }
+}
 
-  const res=await fetch(API+"/api/admin/login",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({email,password})
-  });
+async function loadStats(){
+    const res = await fetch(API+"/admin/stats",{
+        headers:{ "Authorization":"Bearer "+localStorage.adminToken }
+    });
+    const data = await res.json();
+    totalUsers.innerText = data.users;
+    totalBets.innerText = data.totalBets;
+    totalWins.innerText = data.totalWins;
+    winProb.value = data.winProbability || 0.48;
+}
 
-  const data=await res.json();
+async function updateWinProb(){
+    const value = parseFloat(winProb.value);
+    const res = await fetch(API+"/admin/win-probability",{
+        method:"POST",
+        headers:{ 
+            "Content-Type":"application/json",
+            "Authorization":"Bearer "+localStorage.adminToken 
+        },
+        body:JSON.stringify({winProbability:value})
+    });
+    const data = await res.json();
+    alert(data.message);
+}
 
-  if(data.token){
-    // save token to localStorage
-    localStorage.adminToken=data.token;
-    // redirect to full admin dashboard
-    window.location.href="admin-dashboard.html";
-  }else{
-    errorMsg.innerText=data.message || "Invalid email or password";
-  }
+async function loadUsers(){
+    const res = await fetch(API+"/admin/users",{
+        headers:{ "Authorization":"Bearer "+localStorage.adminToken }
+    });
+    const users = await res.json();
+    usersTable.innerHTML="";
+    users.forEach(u=>{
+        usersTable.innerHTML+=`<tr>
+            <td>${u._id}</td>
+            <td>${u.username}</td>
+            <td>${u.email}</td>
+            <td>${u.balance}</td>
+            <td><button onclick="editBalance('${u._id}')">Edit Balance</button></td>
+        </tr>`;
+    });
+}
+
+async function editBalance(id){
+    const newBal = prompt("Enter new balance:");
+    if(newBal!=null){
+        const res = await fetch(API+"/admin/edit-balance",{
+            method:"POST",
+            headers:{ 
+                "Content-Type":"application/json",
+                "Authorization":"Bearer "+localStorage.adminToken 
+            },
+            body:JSON.stringify({userId:id, balance:parseFloat(newBal)})
+        });
+        const data = await res.json();
+        alert(data.message);
+        loadUsers();
+    }
+}
+
+async function loadDeposits(){
+    const res = await fetch(API+"/admin/deposits",{
+        headers:{ "Authorization":"Bearer "+localStorage.adminToken }
+    });
+    const deposits = await res.json();
+    depositTable.innerHTML="";
+    deposits.forEach(d=>{
+        depositTable.innerHTML+=`<tr>
+            <td>${d._id}</td>
+            <td>${d.playerCode}</td>
+            <td>${d.amount}</td>
+            <td>${d.txHash}</td>
+            <td>${d.status}</td>
+        </tr>`;
+    });
+}
+
+async function loadWithdraws(){
+    const res = await fetch(API+"/admin/withdraws",{
+        headers:{ "Authorization":"Bearer "+localStorage.adminToken }
+    });
+    const withdraws = await res.json();
+    withdrawTable.innerHTML="";
+    withdraws.forEach(w=>{
+        withdrawTable.innerHTML+=`<tr>
+            <td>${w._id}</td>
+            <td>${w.playerCode}</td>
+            <td>${w.amount}</td>
+            <td>${w.walletAddress}</td>
+            <td>${w.blockchain}</td>
+            <td><button onclick="approveWithdraw('${w._id}')">Approve</button></td>
+        </tr>`;
+    });
+}
+
+async function approveWithdraw(id){
+    const res = await fetch(API+"/admin/approve-withdraw",{
+        method:"POST",
+        headers:{ 
+            "Content-Type":"application/json",
+            "Authorization":"Bearer "+localStorage.adminToken 
+        },
+        body:JSON.stringify({withdrawId:id})
+    });
+    const data = await res.json();
+    alert(data.message);
+    loadWithdraws();
+}
+
+async function loadTournaments(){
+    const res = await fetch(API+"/admin/tournaments",{
+        headers:{ "Authorization":"Bearer "+localStorage.adminToken }
+    });
+    const tournaments = await res.json();
+    tournamentTable.innerHTML="";
+    tournaments.forEach(t=>{
+        tournamentTable.innerHTML+=`<tr>
+            <td>${t._id}</td>
+            <td>${t.name}</td>
+            <td>${t.status}</td>
+            <td><button onclick="startTournament('${t._id}')">Start</button></td>
+        </tr>`;
+    });
+}
+
+async function startTournament(id){
+    const res = await fetch(API+"/admin/start-tournament",{
+        method:"POST",
+        headers:{ 
+            "Content-Type":"application/json",
+            "Authorization":"Bearer "+localStorage.adminToken 
+        },
+        body:JSON.stringify({tournamentId:id})
+    });
+    const data = await res.json();
+    alert(data.message);
+    loadTournaments();
+}
+
+async function loadLeaderboard(){
+    const res = await fetch(API+"/leaderboard",{
+        headers:{ "Authorization":"Bearer "+localStorage.adminToken }
+    });
+    const data = await res.json();
+    leaderboardTable.innerHTML="";
+    data.forEach((u,i)=>{
+        leaderboardTable.innerHTML+=`<tr>
+            <td>${i+1}</td>
+            <td>${u.username}</td>
+            <td>${u.balance}</td>
+        </tr>`;
+    });
+}
+
+async function loadLiveStats(){
+    const res = await fetch(API+"/admin/live-stats",{
+        headers:{ "Authorization":"Bearer "+localStorage.adminToken }
+    });
+    const stats = await res.json();
+    liveStatsTable.innerHTML="";
+    stats.forEach(s=>{
+        liveStatsTable.innerHTML+=`<tr>
+            <td>${s.game}</td>
+            <td>${s.players}</td>
+            <td>${s.totalBets}</td>
+            <td>${s.totalWins}</td>
+        </tr>`;
+    });
 }
 </script>
 
