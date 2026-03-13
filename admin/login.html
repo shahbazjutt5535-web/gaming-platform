@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Admin Login</title>
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#111;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+.login-panel{
+  background:#1c1c1c;
+  padding:40px;
+  border-radius:10px;
+  width:400px;
+  text-align:center;
+  box-shadow:0 0 20px gold;
+  animation: lightMove 3s infinite alternate;
+}
+h2{color:gold;}
+input{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:5px;
+  border:none;
+}
+input:focus{outline:none;}
+button{
+  width:100%;
+  padding:12px;
+  background:gold;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+}
+button:hover{background:#e6c200;}
+.error{color:red;margin:10px 0;}
+@keyframes lightMove{
+  0%{box-shadow:0 0 20px gold;}
+  50%{box-shadow:0 0 50px gold;}
+  100%{box-shadow:0 0 20px gold;}
+}
+</style>
+</head>
+<body>
+
+<div class="login-panel">
+<h2>Admin Login</h2>
+<input id="adminEmail" type="email" placeholder="Email">
+<input id="adminPass" type="password" placeholder="Password">
+<div class="error" id="errorMsg"></div>
+<button onclick="loginAdmin()">Login</button>
+</div>
+
+<script>
+const API="https://gaming-platform-8m93.onrender.com";
+
+async function loginAdmin(){
+  const email=document.getElementById("adminEmail").value;
+  const password=document.getElementById("adminPass").value;
+  const errorMsg=document.getElementById("errorMsg");
+
+  const res=await fetch(API+"/api/admin/login",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({email,password})
+  });
+
+  const data=await res.json();
+
+  if(data.token){
+    // save token to localStorage
+    localStorage.adminToken=data.token;
+    // redirect to full admin dashboard
+    window.location.href="admin-dashboard.html";
+  }else{
+    errorMsg.innerText=data.message || "Invalid email or password";
+  }
+}
+</script>
+
+</body>
+</html>
