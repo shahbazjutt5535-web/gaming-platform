@@ -1,21 +1,56 @@
 const express = require("express");
 const router = express.Router();
-const Admin = require("../models/Admin"); // admin schema
-const jwt = require("jsonwebtoken");
 
-const SECRET = "YOUR_ADMIN_JWT_SECRET"; // store in .env ideally
+const User = require("../models/User");
 
-// Admin Login
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  const admin = await Admin.findOne({ email });
+/* GET ALL USERS */
 
-  if(!admin || admin.password !== password){
-    return res.status(401).json({ message: "Invalid email or password" });
-  }
+router.get("/users", async (req,res)=>{
 
-  const token = jwt.sign({ id: admin._id }, SECRET, { expiresIn: "12h" });
-  res.json({ token });
+try{
+
+const users = await User.find().select("username playerCode balance");
+
+res.json(users);
+
+}catch(err){
+
+res.status(500).json({error:err.message});
+
+}
+
 });
+
+
+/* UPDATE USER BALANCE */
+
+router.post("/update-balance", async (req,res)=>{
+
+try{
+
+const {playerCode,amount} = req.body;
+
+const user = await User.findOne({playerCode});
+
+if(!user){
+
+return res.json({message:"User not found"});
+
+}
+
+user.balance = Number(amount);
+
+await user.save();
+
+res.json({message:"Balance updated"});
+
+}catch(err){
+
+res.status(500).json({error:err.message});
+
+}
+
+});
+
 
 module.exports = router;
