@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Casino Admin Panel</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#111;
+color:white;
+padding:20px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+th,td{
+border:1px solid #444;
+padding:10px;
+text-align:center;
+}
+
+th{
+background:black;
+color:gold;
+}
+
+button{
+background:black;
+color:gold;
+border:1px solid gold;
+padding:6px 12px;
+cursor:pointer;
+}
+
+input{
+padding:6px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Admin Dashboard</h1>
+
+<h2>Users</h2>
+
+<table id="usersTable">
+
+<tr>
+<th>Username</th>
+<th>Player ID</th>
+<th>Balance</th>
+<th>Edit Balance</th>
+</tr>
+
+</table>
+
+<script>
+
+const API="https://gaming-platform-8m93.onrender.com"
+
+loadUsers()
+
+async function loadUsers(){
+
+const res=await fetch(API+"/api/admin/users")
+
+const users=await res.json()
+
+const table=document.getElementById("usersTable")
+
+users.forEach(u=>{
+
+const row=document.createElement("tr")
+
+row.innerHTML=`
+
+<td>${u.username}</td>
+<td>${u.playerCode}</td>
+<td id="bal_${u.playerCode}">${u.balance}</td>
+
+<td>
+
+<input id="input_${u.playerCode}" placeholder="New Balance">
+
+<button onclick="updateBalance('${u.playerCode}')">Update</button>
+
+</td>
+
+`
+
+table.appendChild(row)
+
+})
+
+}
+
+async function updateBalance(code){
+
+const amount=document.getElementById("input_"+code).value
+
+const res=await fetch(API+"/api/admin/update-balance",{
+
+method:"POST",
+
+headers:{"Content-Type":"application/json"},
+
+body:JSON.stringify({
+
+playerCode:code,
+
+amount:amount
+
+})
+
+})
+
+const data=await res.json()
+
+alert(data.message)
+
+location.reload()
+
+}
+
+</script>
+
+</body>
+</html>
